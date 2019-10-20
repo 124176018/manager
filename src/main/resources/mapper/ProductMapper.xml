@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为UserMapper接口方法提供sql语句配置 -->
+<mapper namespace="com.aishang.manager.dao.ProductMapper">
+    <select id="findAllProduct" resultType="product" parameterType="com.aishang.manager.util.PageBenForProduct">
+        SELECT *
+        FROM category
+        RIGHT JOIN categorysecond
+        ON category.cid = categorysecond.cid
+        RIGHT JOIN product
+        ON categorysecond.csid= product.csid
+        <where>
+            <if test="cid!=null and cid!=''">
+                category.cid=#{cid}
+            </if>
+            <if test="csid!=null and csid!=''">
+                and categorysecond.csid=#{csid}
+            </if>
+            <if test="pname!=null and pname!=''">
+                and product.pname like "%"#{pname}"%"
+            </if>
+        </where>
+        order by pid desc
+        limit #{startIndex},#{pageSize}
+    </select>
+    <select id="findAllCount" resultType="Integer" parameterType="com.aishang.manager.util.PageBenForProduct">
+        SELECT COUNT(0)
+        FROM category
+        RIGHT JOIN categorysecond
+        ON category.cid = categorysecond.cid
+        RIGHT JOIN product
+        ON categorysecond.csid= product.csid
+        <where>
+            <if test="cid!=null and cid!=''">
+                category.cid=#{cid}
+            </if>
+            <if test="csid!=null and csid!=''">
+                and categorysecond.csid=#{csid}
+            </if>
+            <if test="pname!=null and pname!=''">
+                and product.pname like "%"#{pname}"%"
+            </if>
+        </where>
+    </select>
+
+
+    <select id="findCateone" resultType="category">
+        SELECT * FROM category
+    </select>
+    <select id="findCatetwo" resultType="CategorySecond" parameterType="Integer">
+        SELECT * FROM CategorySecond where cid=#{cid}
+    </select>
+    <select id="findCate" resultType="category">
+        SELECT * FROM category where cid=#{cid}
+    </select>
+
+    <resultMap id="productImageMap" type="com.aishang.manager.po.ProductImageExt">
+        <id column="pid" property="pid"/><!--1.数据库字段2.po类里的字段 -->
+        <result column="pname" property="pname"/>
+        <result column="market_price" property="market_price"/>
+        <result column="shop_price" property="shop_price"/>
+        <result column="pdesc" property="pdesc"/>
+        <result column="pdate" property="pdate"/>
+        <result column="csid" property="csid"/>
+        <result column="pstate" property="pstate"/>
+        <result column="pimage" property="pimage"/>
+
+        <collection property="productImage" ofType="productImage">
+            <id column="pmid" property="pmid"/>
+            <result column="pid" property="pid"/>
+            <result column="image" property="image"/>
+            <result column="thumbnail" property="thumbnail"/>
+
+        </collection>
+    </resultMap>
+
+    <insert id="aps" parameterType="ProductImageExt">
+        <selectKey keyProperty="pid" order="AFTER" resultType="int">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into product(pname, market_price, shop_price, pdesc, pdate, csid, pstate,pimage) values(#{pname},
+        #{market_price}, #{shop_price}, #{pdesc}, #{pdate}, #{csid}, #{pstate},#{pimage})
+    </insert>
+
+    <select id="findtwocsid" resultType="CategorySecond" parameterType="String">
+        SELECT * FROM categorySecond WHERE csname=#{csname}
+    </select>
+
+    <delete id="deleproductimage" parameterType="Integer">
+        DELETE FROM productimage WHERE pid=#{pid}
+    </delete>
+
+    <delete id="deleproduct" parameterType="Integer">
+        DELETE FROM product WHERE pid=#{pid}
+    </delete>
+
+    <select id="selectImageByPid" parameterType="com.aishang.manager.util.PageBenForProduct" resultType="productImage">
+        SELECT *FROM productImage WHERE pid=#{pid}
+    </select>
+
+    <select id="findallseconds" resultType="CategorySecond">
+        SELECT * FROM categorysecond
+    </select>
+
+    <update id="changeproduct" parameterType="product">
+        update product
+        set
+        <if test="pname != null">
+            pname = #{pname},
+        </if>
+        <if test="market_price != null">
+            market_price=#{market_price},
+        </if>
+        <if test="shop_price != null">
+            shop_price = #{shop_price},
+        </if>
+        <if test="pdesc != null">
+            pdesc=#{pdesc} ,
+        </if>
+        <if test="pstate != null">
+            pstate = #{pstate},
+        </if>
+        <if test="csid != null">
+            csid=#{csid},
+        </if>
+        <if test="pdate != null">
+            pdate=#{pdate},
+        </if>
+        <if test="pimage != null">
+            pimage=#{pimage}
+        </if>
+        where pid=#{pid}
+    </update>
+    <resultMap id="productExtMap" type="ProductExt">
+        <!--封装Product-->
+        <id column="pid" property="pid"/><!--1.数据库字段2.po类里的字段 -->
+        <result column="pname" property="pname"/>
+        <result column="market_price" property="market_price"/>
+        <result column="shop_price" property="shop_price"/>
+        <result column="pdesc" property="pdesc"/>
+        <result column="pdate" property="pdate"/>
+        <result column="csid" property="csid"/>
+        <result column="pstate" property="pstate"/>
+        <result column="pimage" property="pimage"/>
+
+        <collection property="categories" ofType="categoryExt">
+            <id column="cid" property="cid"/>
+            <result column="cname" property="cname"/>
+            <result column="cstate" property="cstate"/>
+            <!-- collection用于对多 -->
+            <collection property="categorysSeconds" ofType="categorySecond">
+                <id column="csid" property="csid"/><!--1.数据库字段2.po类里的字段 -->
+                <result column="csname" property="csname"/>
+                <result column="cid" property="cid"/>
+                <result column="csstate" property="csstate"/>
+            </collection>
+        </collection>
+    </resultMap>
+    <select id="getAllProduct" resultMap="productExtMap" parameterType="com.aishang.manager.util.PageBenForProduct">
+        SELECT *
+        FROM category
+        RIGHT JOIN categorysecond
+        ON category.cid = categorysecond.cid
+        RIGHT JOIN product
+        ON categorysecond.csid= product.csid
+        WHERE pid=#{pid}
+
+    </select>
+</mapper>

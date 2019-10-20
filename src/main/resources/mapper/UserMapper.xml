@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为UserMapper接口方法提供sql语句配置 -->
+<mapper namespace="com.aishang.manager.dao.UserMapper">
+    <!--根据用户名查询user表里是否有这个用户为AXAJ做准备-->
+    <select id="findUserNameAndPwd" parameterType="AdminUser" resultType="AdminUser">
+        SELECT * FROM adminuser WHERE username= #{username}and password= #{password}
+    </select>
+</mapper>
